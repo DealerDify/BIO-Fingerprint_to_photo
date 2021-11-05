@@ -1,10 +1,13 @@
 from tkinter import *
 import tkinter.ttk
 from PIL import ImageTk, Image
+from tkinter import filedialog
 
 from imageListBox import ImageListBox
 
 # Window config
+from main import get_fingerprint_photo
+
 root = Tk()
 root.title("Synthetic fingerprint to photo")
 
@@ -14,6 +17,23 @@ root.iconphoto(False, icon)
 # Methods
 def importImage():
     print("Import clicked.")  # TODO: remake
+    filetypes = (
+        ('png files', '*.png'),
+    )
+    fingerprint_filename = filedialog.askopenfilename(
+        title='Select a fingerprint',
+        initialdir='/',
+        filetypes=filetypes
+    )
+    if fingerprint_filename != "":
+        fingerprint = Image.open(fingerprint_filename)
+        fingerprint.thumbnail((500, 500))
+        fingerprint = ImageTk.PhotoImage(fingerprint)
+        fingerprintImage.img = fingerprint  # keeps garbage collected away
+        fingerprintImage["image"] = fingerprint
+        fingerprintListBox.filepath = fingerprint_filename
+        renderPhoto(fingerprint_filename)
+    print(fingerprint_filename)
 
 
 def saveImage():
@@ -23,14 +43,29 @@ def saveImage():
 ### Fingerprint section ###
 
 
-fingerprint = Image.open("./SG_1_1_sq.png")
-fingerprint.thumbnail((700, 700))
-fingerprint = ImageTk.PhotoImage(fingerprint)
-fingerprintLabel = Label(root, text="Fingerprint", font=("Helvetica", 16, "bold"))
-fingerprintImage = Label(root, image=fingerprint)
+def renderPhoto(fingerprint_filename=""):
 
-fingerprintLabel.grid(row=0, column=0, pady=(10, 15))
-fingerprintImage.grid(row=1, column=0, padx=(15, 15), rowspan=20)
+    if not fingerprint_filename:
+        fingerprint_filename = fingerprintListBox.filepath
+
+    fingerprint = Image.open(fingerprint_filename)
+    fingerprint.thumbnail((500, 500))
+    fingerprint = ImageTk.PhotoImage(fingerprint)
+    fingerprintImage.img = fingerprint
+    fingerprintImage["image"] = fingerprint
+
+
+    skin_filename = skinListBox.filepath
+    bg_filename = backgroundListBox.filepath
+    if fingerprint_filename and skin_filename and bg_filename:
+        photo = get_fingerprint_photo(fingerprint_filename, skin_filename, bg_filename)
+        photo.thumbnail((500, 500))
+        photo = ImageTk.PhotoImage(photo)
+        photoImage.img = photo
+        photoImage["image"] = photo
+
+
+
 
 importButton = Button(
     root,
@@ -47,12 +82,8 @@ importButton.grid(row=21, column=0, pady=(15, 15))
 
 ### Photo section ###
 
-
-photo = Image.open("./skin_texture_1.png")
-photo.thumbnail((500, 500))
-photo = ImageTk.PhotoImage(photo)
 photoLabel = Label(root, text="Photo", font=("Helvetica", 16, "bold"))
-photoImage = Label(root, image=photo)
+photoImage = Label(root)
 
 photoLabel.grid(row=0, column=1, pady=(10, 15))
 photoImage.grid(row=1, column=1, padx=(15, 15), rowspan=20)
@@ -85,13 +116,13 @@ fingerprintFrame = LabelFrame(
 )
 fingerprintFrame.grid(row=1, column=4, rowspan=5, padx=10, pady=10)
 
-fingerprintListBox = ImageListBox(fingerprintFrame, "./assets/fingerprints")
+fingerprintListBox = ImageListBox(fingerprintFrame, "./assets/fingerprints", renderPhoto)
 
 # Skin frame
 skinFrame = LabelFrame(root, text="Skin", font=("Helvetica", 11), padx=5, pady=5)
 skinFrame.grid(row=6, column=4, rowspan=5, padx=10, pady=10)
 
-skinListBox = ImageListBox(skinFrame, "./assets/skins")
+skinListBox = ImageListBox(skinFrame, "./assets/skins", renderPhoto)
 
 # Background frame
 backgroundFrame = LabelFrame(
@@ -99,7 +130,19 @@ backgroundFrame = LabelFrame(
 )
 backgroundFrame.grid(row=11, column=4, rowspan=5, padx=10, pady=10)
 
-backgroundListBox = ImageListBox(backgroundFrame, "./assets/backgrounds")
+backgroundListBox = ImageListBox(backgroundFrame, "./assets/backgrounds", renderPhoto)
+
+fingerprint = Image.open(fingerprintListBox.filepath)
+fingerprint.thumbnail((500, 500))
+fingerprint = ImageTk.PhotoImage(fingerprint)
+fingerprintLabel = Label(root, text="Fingerprint", font=("Helvetica", 16, "bold"))
+fingerprintImage = Label(root, image=fingerprint)
+
+fingerprintLabel.grid(row=0, column=0, pady=(10, 15))
+fingerprintImage.grid(row=1, column=0, padx=(15, 15), rowspan=20)
+
+
+renderPhoto()
 
 ### Main loop ###
 root.mainloop()

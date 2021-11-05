@@ -1,8 +1,6 @@
-
 from PIL import Image, ImageFilter, ImageDraw, ImageEnhance, ImageOps
 import numpy as np
 from scipy import ndimage
-import scipy.misc
 
 def get_mask(src_img):
     img = np.array(src_img)
@@ -43,10 +41,12 @@ def white_to_transparent(src_img):
 
     return Image.fromarray(x)
 
-if __name__ == '__main__':
-    pic = Image.open("SG_3_1.png")
-    skin = Image.open("skin_texture_2.png")
+def get_fingerprint_photo(fingerprint, skin, background):
+    pic = Image.open(fingerprint)
+    skin = Image.open(skin)
     skin = skin.resize(pic.size)
+    bg = Image.open(background)
+    bg = bg.resize(pic.size)
     skin_darker = skin.copy()
     factor = 0.95  # used between papillary lines
     ultra_dark_factor = 0.5  # used on edged
@@ -74,4 +74,10 @@ if __name__ == '__main__':
 
     # makes edges darker
     final = Image.composite(orig_img, skin_ultra_darker, darker_edges.convert('L'))
+    bg.paste(final, (0, 0), inverted_mask)
+    return bg
+
+
+if __name__ == '__main__':
+    final = get_fingerprint_photo("SG_1_1_sq.png", "skin_texture_2.png", "bg2.png")
     final.show()
