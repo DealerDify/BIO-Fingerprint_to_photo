@@ -7,7 +7,6 @@ from imageListBox import ImageListBox
 from main import get_fingerprint_photo
 
 # Window config
-
 root = Tk()
 root.title("Synthetic fingerprint to photo")
 root.resizable(False, False)
@@ -15,8 +14,8 @@ icon = PhotoImage(file="./assets/fingerprint-icon.png")
 root.iconphoto(False, icon)
 
 # Methods
-
 photo_img = None
+
 
 def importImage():
     filetypes = (("png files", "*.png"),)
@@ -36,7 +35,12 @@ def importImage():
 
 def saveImage():
     if photo_img:
-        file = filedialog.asksaveasfile(mode='wb', defaultextension=".png")
+        file = filedialog.asksaveasfile(
+            mode="wb",
+            filetypes=[("png", "*.png")],
+            defaultextension=".png",
+            initialfile="fingerprint",
+        )
         if file:
             photo_img.save(file)
 
