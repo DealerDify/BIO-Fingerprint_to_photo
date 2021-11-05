@@ -20,7 +20,16 @@ def get_mask(src_img):
     ImageDraw.floodfill(mask, seed, rep_value, thresh=0)
     n_mask = np.array(mask)
     reds = (n_mask[:, :, 0] == 255) & (n_mask[:, :, 1] == 0) & (n_mask[:, :, 2] == 0)
-    return Image.fromarray((reds*255).astype(np.uint8))
+    img_mask = Image.fromarray((reds*255).astype(np.uint8))
+
+    # making mask smoother by blurring it and getting mask by threshold
+    blur_factor = 10
+    blurred_mask = img_mask.filter(ImageFilter.GaussianBlur(blur_factor))
+    n_b_mask = np.array(blurred_mask.convert("RGB"))
+    blacks = (n_b_mask[:, :, 0] > 120)
+    img_b_mask = Image.fromarray((blacks * 255).astype(np.uint8))
+
+    return img_b_mask
 
 def change_color(src_img, rgb_in, rgb_out):
     data = np.array(src_img.convert("RGB"))
@@ -41,36 +50,55 @@ def white_to_transparent(src_img):
 
     return Image.fromarray(x)
 
-def get_fingerprint_photo(fingerprint, skin, background):
+def get_fingerprint_photo(fingerprint, skin, background, damage):
+    # fingerprint
     pic = Image.open(fingerprint)
+    # skin
     skin = Image.open(skin)
     skin = skin.resize(pic.size)
+    # background
     bg = Image.open(background)
     bg = bg.resize(pic.size)
-    skin_darker = skin.copy()
+    # damage
+    dmg = Image.open(damage)
+    dmg = dmg.resize(pic.size)
+    # getting rid of blur edges after resize
+    n_dmg = np.array(dmg.convert("RGB"))
+    blacks = (n_dmg[:, :, 0] > 180)
+    dmg = Image.fromarray((blacks * 255).astype(np.uint8))
+    dmg = white_to_transparent(dmg)
+
+    # editing skin to different shades
     factor = 0.95  # used between papillary lines
     ultra_dark_factor = 0.5  # used on edged
-    skin_darker = ImageEnhance.Brightness(skin_darker).enhance(factor)
-    skin_ultra_darker = ImageEnhance.Brightness(skin_darker).enhance(ultra_dark_factor)
+    skin_darker = ImageEnhance.Brightness(skin).enhance(factor)
+    skin_ultra_darker = ImageEnhance.Brightness(skin).enhance(ultra_dark_factor)
     white_bg = Image.new("RGB", pic.size, color="white")
     papillar = white_bg.copy()
     darker_edges = white_bg.copy()
+    damage_masked = white_bg.copy()
+    skin_saturation = ImageEnhance.Color(skin_darker).enhance(1.05)
 
+    # getting mask, inverted mask and blurred mask
     mask = get_mask(pic)
     blur_factor = 50
     blurred_mask = mask.filter(ImageFilter.GaussianBlur(blur_factor))
 
     invert_blurred_mask = ImageOps.invert(blurred_mask)
     inverted_mask = ImageOps.invert(mask)
+
     darker_edges.paste(invert_blurred_mask, (0, 0), inverted_mask)
 
     orig_pic = white_to_transparent(pic)  # basically a mask from fingerprint
 
-    papillar.paste(skin, (0, 0), orig_pic.convert('RGBA'))  # maps skin to papillary lines
+    papillar.paste(skin, (0, 0), orig_pic)  # maps skin to papillary lines
     skin_darker.paste(pic, (0, 0), mask)  # cuts finger shape into skin
+    damage_masked.paste(skin_saturation, (0, 0), dmg)  # cuts damage into skin
+    damage_masked.paste(pic, (0, 0), mask)  # cuts damage to shape of finger
 
     # combines papillary lines and finger "background"
     orig_img = Image.blend(papillar.convert('RGBA'), skin_darker.convert('RGBA'), alpha=0.8)
+    orig_img.paste(damage_masked, (0, 0), dmg) # adds damage
 
     # makes edges darker
     final = Image.composite(orig_img, skin_ultra_darker, darker_edges.convert('L'))
@@ -79,5 +107,5 @@ def get_fingerprint_photo(fingerprint, skin, background):
 
 
 if __name__ == '__main__':
-    final = get_fingerprint_photo("SG_1_1_sq.png", "skin_texture_2.png", "bg2.png")
+    final = get_fingerprint_photo("SG_1_1.png", "skin_texture_2.png", "bg2.png", "damage_1_bg.png")
     final.show()

@@ -49,9 +49,10 @@ def renderPhoto(fingerprintFilename=""):
 
     skinFilename = skinListBox.filepath
     backgroundFilename = backgroundListBox.filepath
-    if fingerprintFilename and skinFilename and backgroundFilename:
+    damageFilename = damageListBox.filepath
+    if fingerprintFilename and skinFilename and backgroundFilename and damageFilename:
         photo = get_fingerprint_photo(
-            fingerprintFilename, skinFilename, backgroundFilename
+            fingerprintFilename, skinFilename, backgroundFilename, damageFilename
         )
         photo.thumbnail((600, 600))
         photo = ImageTk.PhotoImage(photo)
@@ -72,7 +73,7 @@ panelLabel.grid(row=0, column=4, pady=(10, 15))
 fingerprintFrame = LabelFrame(
     root, text="Fingerprint", font=("Helvetica", 11), padx=5, pady=5
 )
-fingerprintFrame.grid(row=1, column=4, rowspan=5, padx=10, pady=10)
+fingerprintFrame.grid(row=1, column=4, rowspan=5, padx=10, pady=0)
 
 fingerprintListBox = ImageListBox(
     fingerprintFrame, "./assets/fingerprints", renderPhoto
@@ -80,13 +81,13 @@ fingerprintListBox = ImageListBox(
 
 # Skin frame
 skinFrame = LabelFrame(root, text="Skin", font=("Helvetica", 11), padx=5, pady=5)
-skinFrame.grid(row=6, column=4, rowspan=5, padx=10, pady=10)
+skinFrame.grid(row=6, column=4, rowspan=5, padx=10, pady=0)
 
 skinListBox = ImageListBox(skinFrame, "./assets/skins", renderPhoto)
 
 # Damage frame
 damageFrame = LabelFrame(root, text="Damage", font=("Helvetica", 11), padx=5, pady=5)
-damageFrame.grid(row=11, column=4, rowspan=5, padx=10, pady=10)
+damageFrame.grid(row=11, column=4, rowspan=5, padx=10, pady=0)
 
 damageListBox = ImageListBox(damageFrame, "./assets/damage", renderPhoto)
 
@@ -94,7 +95,7 @@ damageListBox = ImageListBox(damageFrame, "./assets/damage", renderPhoto)
 backgroundFrame = LabelFrame(
     root, text="Background", font=("Helvetica", 11), padx=5, pady=5
 )
-backgroundFrame.grid(row=16, column=4, rowspan=5, padx=10, pady=10)
+backgroundFrame.grid(row=16, column=4, rowspan=5, padx=10, pady=0)
 
 backgroundListBox = ImageListBox(backgroundFrame, "./assets/backgrounds", renderPhoto)
 
