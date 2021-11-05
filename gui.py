@@ -16,6 +16,7 @@ root.iconphoto(False, icon)
 
 # Methods
 
+photo_img = None
 
 def importImage():
     filetypes = (("png files", "*.png"),)
@@ -34,7 +35,10 @@ def importImage():
 
 
 def saveImage():
-    print("Save clicked.")  # TODO: remake
+    if photo_img:
+        file = filedialog.asksaveasfile(mode='wb', defaultextension=".png")
+        if file:
+            photo_img.save(file)
 
 
 def renderPhoto(fingerprintFilename=""):
@@ -51,9 +55,11 @@ def renderPhoto(fingerprintFilename=""):
     backgroundFilename = backgroundListBox.filepath
     damageFilename = damageListBox.filepath
     if fingerprintFilename and skinFilename and backgroundFilename and damageFilename:
-        photo = get_fingerprint_photo(
+        global photo_img
+        photo_img = get_fingerprint_photo(
             fingerprintFilename, skinFilename, backgroundFilename, damageFilename
         )
+        photo = photo_img.copy()
         photo.thumbnail((600, 600))
         photo = ImageTk.PhotoImage(photo)
         photoImage.img = photo
