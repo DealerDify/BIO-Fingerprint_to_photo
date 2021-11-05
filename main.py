@@ -2,12 +2,12 @@ from PIL import Image, ImageFilter, ImageDraw, ImageEnhance, ImageOps
 import numpy as np
 from scipy import ndimage
 
+
 def get_mask(src_img):
     img = np.array(src_img)
     # laplace
     A = np.full((9, 9), -1)
     A[4, 4] = 80
-
 
     # get edges
     out = ndimage.convolve(img, A)
@@ -31,6 +31,7 @@ def get_mask(src_img):
 
     return img_b_mask
 
+
 def change_color(src_img, rgb_in, rgb_out):
     data = np.array(src_img.convert("RGB"))
 
@@ -43,12 +44,14 @@ def change_color(src_img, rgb_in, rgb_out):
 
     return Image.fromarray(data)
 
+
 def white_to_transparent(src_img):
     x = np.asarray(src_img.convert('RGBA')).copy()
 
     x[:, :, 3] = (255 * (x[:, :, :3] != 255).any(axis=2)).astype(np.uint8)
 
     return Image.fromarray(x)
+
 
 def get_fingerprint_photo(fingerprint, skin, background, damage):
     # fingerprint
@@ -98,14 +101,9 @@ def get_fingerprint_photo(fingerprint, skin, background, damage):
 
     # combines papillary lines and finger "background"
     orig_img = Image.blend(papillar.convert('RGBA'), skin_darker.convert('RGBA'), alpha=0.8)
-    orig_img.paste(damage_masked, (0, 0), dmg) # adds damage
+    orig_img.paste(damage_masked, (0, 0), dmg)  # adds damage
 
     # makes edges darker
     final = Image.composite(orig_img, skin_ultra_darker, darker_edges.convert('L'))
     bg.paste(final, (0, 0), inverted_mask)
     return bg
-
-
-if __name__ == '__main__':
-    final = get_fingerprint_photo("SG_1_1.png", "skin_texture_2.png", "bg2.png", "damage_1_bg.png")
-    final.show()
