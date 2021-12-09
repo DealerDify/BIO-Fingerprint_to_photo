@@ -6,8 +6,13 @@ from scipy import ndimage
 def get_mask(src_img):
     img = np.array(src_img)
     # laplace
-    A = np.full((9, 9), -1)
-    A[4, 4] = 80
+    
+    # would deform the image more
+    # A = np.full((9, 9), -1)
+    # A[4, 4] = 80
+
+    A = np.full((3, 3), -1)
+    A[1, 1] = 8
 
     # get edges
     out = ndimage.convolve(img, A)
@@ -20,7 +25,7 @@ def get_mask(src_img):
     ImageDraw.floodfill(mask, seed, rep_value, thresh=0)
     n_mask = np.array(mask)
     reds = (n_mask[:, :, 0] == 255) & (n_mask[:, :, 1] == 0) & (n_mask[:, :, 2] == 0)
-    img_mask = Image.fromarray((reds*255).astype(np.uint8))
+    img_mask = Image.fromarray((reds * 255).astype(np.uint8))
 
     # making mask smoother by blurring it and getting mask by threshold
     blur_factor = 10
@@ -46,16 +51,17 @@ def change_color(src_img, rgb_in, rgb_out):
 
 
 def white_to_transparent(src_img):
+    # almost white, also takes slightly grey, because of the damaged images
     x = np.asarray(src_img.convert('RGBA')).copy()
 
-    x[:, :, 3] = (255 * (x[:, :, :3] != 255).any(axis=2)).astype(np.uint8)
+    x[:, :, 3] = (255 * (x[:, :, :3] < 240).any(axis=2)).astype(np.uint8)
 
     return Image.fromarray(x)
 
 
 def get_fingerprint_photo(fingerprint, skin, background, damage):
     # fingerprint
-    pic = Image.open(fingerprint)
+    pic = Image.open(fingerprint).convert('L')
     # skin
     skin = Image.open(skin)
     skin = skin.resize(pic.size)

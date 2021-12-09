@@ -5,7 +5,7 @@ import glob
 
 class ImageListBox:
     def __init__(self, root, folder, guiRenderPhoto):
-        self.files = glob.glob(folder + "/*.png")
+        self.files = glob.glob(folder + "/*.png") + glob.glob(folder + "/*.jpg") + glob.glob(folder + "/*.bmp")
         self.filepath = ""
 
         self.l = Listbox(root, width=30, height=4)
