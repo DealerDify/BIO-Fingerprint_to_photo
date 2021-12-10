@@ -18,7 +18,7 @@ photo_img = None
 
 
 def importImage():
-    filetypes = (("png files", "*.png"),)
+    filetypes = (("Image files", "*.png *.jpg *.bmp"),)
     fingerprintFilename = filedialog.askopenfilename(
         title="Select a fingerprint", initialdir="/", filetypes=filetypes
     )
