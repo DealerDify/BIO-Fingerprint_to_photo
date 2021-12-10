@@ -37,19 +37,6 @@ def get_mask(src_img):
     return img_b_mask
 
 
-def change_color(src_img, rgb_in, rgb_out):
-    data = np.array(src_img.convert("RGB"))
-
-    r1, g1, b1 = rgb_in  # Original value
-    r2, g2, b2 = rgb_out  # Value that we want to replace it with
-
-    red, green, blue = data[:, :, 0], data[:, :, 1], data[:, :, 2]
-    mask = (red == r1) & (green == g1) & (blue == b1)
-    data[:, :, :3][mask] = [r2, g2, b2]
-
-    return Image.fromarray(data)
-
-
 def white_to_transparent(src_img):
     # almost white, also takes slightly grey, because of the damaged images
     x = np.asarray(src_img.convert('RGBA')).copy()
